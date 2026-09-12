@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MINE AI</title>
+</head>
+
+<body>
+
+    <h1>MINE</h1>
+    <p>Your anime AI companion</p>
+
+    <button onclick="speak()">Talk to MINE</button>
+
+    <script>
+        function speak() {
+            const message = new SpeechSynthesisUtterance(
+                "Hello. I'm MINE."
+            );
+
+            speechSynthesis.speak(message);
+        }
+    </script>
+
+</body>
+</html>
