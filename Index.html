@@ -3,25 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>MINE AI</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <h1>MINE</h1>
-    <p>Your anime AI companion</p>
+<div id="app">
 
-    <button onclick="speak()">Talk to MINE</button>
+    <header>
+        <h1>MINE</h1>
+        <p>Your AI companion</p>
+    </header>
 
-    <script>
-        function speak() {
-            const message = new SpeechSynthesisUtterance(
-                "Hello. I'm MINE."
-            );
+    <div class="character">
+        <div>
+            <h2>Hi! I'm MINE 💜</h2>
+            <p>I'm here with you.</p>
+        </div>
+    </div>
 
-            speechSynthesis.speak(message);
-        }
-    </script>
+    <div class="chat">
+
+        <div id="messages">
+            <div class="message">
+                MINE: Hello! 💜
+            </div>
+        </div>
+
+        <div class="controls">
+            <input
+                id="userInput"
+                type="text"
+                placeholder="Talk to MINE..."
+            >
+
+            <button onclick="sendMessage()">
+                Send
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
-</html>
+                </html>
