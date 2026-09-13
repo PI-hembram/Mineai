@@ -150,3 +150,35 @@ localStorage.removeItem("mineConversation");
         console.error("Voice error:", error);
     }
 }
+async function loadVoices() {
+    const selector = document.getElementById("voiceSelect");
+
+    try {
+        const voices = await puter.ai.txt2speech.listVoices({
+            provider: "all"
+        });
+
+        selector.innerHTML = "";
+
+        voices.forEach(voice => {
+            const option = document.createElement("option");
+
+            option.value = JSON.stringify({
+                provider: voice.provider,
+                voice: voice.id
+            });
+
+            option.textContent =
+                `${voice.name} (${voice.provider})`;
+
+            selector.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Voice loading error:", error);
+        selector.innerHTML =
+            "<option>Could not load voices</option>";
+    }
+}
+
+loadVoices();
