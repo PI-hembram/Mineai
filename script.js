@@ -92,6 +92,7 @@ function addMessage(text) {
       } 
 function clearChat() {
     conversation = [];
+localStorage.removeItem("mineConversation");
 
     const messages = document.getElementById("messages");
 
