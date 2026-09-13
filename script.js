@@ -69,6 +69,7 @@ Style:
         messages.removeChild(messages.lastElementChild);
 
         addMessage("MINE: " + reply);
+        speakText(reply);
 
     } catch (error) {
         console.error(error);
