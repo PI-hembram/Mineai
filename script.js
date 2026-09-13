@@ -114,3 +114,11 @@ localStorage.removeItem("mineConversation");
             event.results[0][0].transcript;
     };
             }
+  function speakText(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    speech.rate = 1;
+    speech.pitch = 1.1;
+
+    window.speechSynthesis.speak(speech);
+}
