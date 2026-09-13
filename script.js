@@ -114,10 +114,19 @@ localStorage.removeItem("mineConversation");
             event.results[0][0].transcript;
     };
             }
-  async function speakText(text) {
-    const voices = await puter.ai.txt2speech.listVoices({
-        provider: "openai"
-    });
+    async function speakText(text) {
+    try {
+        const voiceText = text.replace(/[.!?,;:]/g, " ");
 
-    console.log(voices);
+        const audio = await puter.ai.txt2speech(voiceText, {
+            provider: "openai",
+            model: "gpt-4o-mini-tts",
+            voice: "coral",
+            instructions: "Young, cute, cheerful anime girl. Natural, playful voice."
+        });
+
+        await audio.play();
+    } catch (error) {
+        console.error("Voice error:", error);
+    }
                 }
