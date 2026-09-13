@@ -116,24 +116,17 @@ localStorage.removeItem("mineConversation");
             }
   async function speakText(text) {
     try {
-        // Remove punctuation that causes long TTS pauses
-        text = text
-            .replace(/\.\.\./g, ", ")
-            .replace(/[.!;:]/g, ",")
-            .replace(/,/g, ", ")
-            .replace(/\s+/g, " ")
-            .trim();
+        const voiceText = text.replace(/[.!?,;:]/g, " ");
 
-        const audio = await puter.ai.txt2speech(text, {
-            provider: "elevenlabs",
-            model: "eleven_multilingual_v2",
-            voice: "EXAVITQu4vr4xnSDxMaL",
-            output_format: "mp3_44100_128"
+        const audio = await puter.ai.txt2speech(voiceText, {
+            provider: "openai",
+            model: "gpt-4o-mini-tts",
+            voice: "coral",
+            instructions: "Young, cute, cheerful anime girl. Natural, playful voice."
         });
 
         await audio.play();
-
     } catch (error) {
         console.error("Voice error:", error);
     }
-                                             }
+            }
