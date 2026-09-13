@@ -1,4 +1,6 @@
-let conversation = [];
+let conversation = JSON.parse(
+    localStorage.getItem("mineConversation") || "[]"
+);
 
 async function sendMessage() {
     const input = document.getElementById("userInput");
@@ -13,6 +15,11 @@ async function sendMessage() {
         role: "user",
         content: text
     });
+
+    localStorage.setItem(
+    "mineConversation",
+    JSON.stringify(conversation)
+);
 
     addMessage("MINE: Thinking... 💜");
 
