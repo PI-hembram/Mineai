@@ -114,38 +114,17 @@ localStorage.removeItem("mineConversation");
             event.results[0][0].transcript;
     };
             }
-  function speakText(text) {
-    window.speechSynthesis.cancel();
+  async function speakText(text) {
+    try {
+        const audio = await puter.ai.txt2speech(text, {
+            provider: "elevenlabs",
+            model: "eleven_multilingual_v2",
+            voice: "21m00Tcm4TlvDq8ikWAM",
+            output_format: "mp3_44100_128"
+        });
 
-    const voices = window.speechSynthesis.getVoices();
-
-    let lang = "en-US";
-
-    // Japanese
-    if (/[\u3040-\u30ff\u3400-\u9fff]/.test(text)) {
-        lang = "ja-JP";
+        await audio.play();
+    } catch (error) {
+        console.error("Voice error:", error);
     }
-    // Hindi / Devanagari
-    else if (/[\u0900-\u097F]/.test(text)) {
-        lang = "hi-IN";
-    }
-
-    // Find a voice matching the detected language
-    let voice = voices.find(v => v.lang === lang);
-
-    if (!voice) {
-        voice = voices.find(v => v.lang.startsWith(lang.split("-")[0]));
-    }
-
-    const speech = new SpeechSynthesisUtterance(text);
-
-    speech.lang = lang;
-    speech.voice = voice || null;
-
-    // Softer anime-style delivery
-    speech.rate = 0.92;
-    speech.pitch = 1.18;
-    speech.volume = 1;
-
-    window.speechSynthesis.speak(speech);
-}
+            }
