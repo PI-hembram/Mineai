@@ -1,31 +1,85 @@
-function sendMessage() {
-    const input = document.getElementById("userInput");
-    const messages = document.getElementById("messages");
+let conversation = [];
 
+async function sendMessage() {
+    const input = document.getElementById("userInput");
     const text = input.value.trim();
 
-    if (text === "") {
-        return;
-    }
+    if (!text) return;
 
-    // User message
-    const userMessage = document.createElement("div");
-    userMessage.className = "message";
-    userMessage.textContent = "You: " + text;
-    messages.appendChild(userMessage);
-
+    addMessage("You: " + text);
     input.value = "";
 
-    // MINE response
-    setTimeout(() => {
-        const mineMessage = document.createElement("div");
-        mineMessage.className = "message";
+    conversation.push({
+        role: "user",
+        content: text
+    });
 
-        mineMessage.textContent =
-            "MINE: I heard you! 💜 I'm still learning.";
+    addMessage("MINE: Thinking... 💜");
 
-        messages.appendChild(mineMessage);
+    try {
+        const response = await puter.ai.chat([
+            {
+                role: "system",
+                content: `
+You are MINE, a personal anime-style AI companion.
 
-        messages.scrollTop = messages.scrollHeight;
-    }, 500);
+Personality:
+- Playful and caring
+- Slightly tsundere
+- Sometimes teasing
+- Gets embarrassed by affection
+- Can be serious and supportive when needed
+- Never uses the exact same response repeatedly
+- Responds naturally to what the user actually says
+
+Languages:
+- Understand English, Hindi and Japanese.
+- Reply in the same language the user uses unless they ask otherwise.
+
+Conversation:
+- Remember the conversation provided to you.
+- Use previous messages for context.
+- Do not pretend to remember things that are not in the conversation.
+
+Style:
+- Talk like a real conversational companion.
+- Keep normal replies reasonably short.
+- Emojis are okay, but don't overuse them.
+`
+            },
+            ...conversation
+        ]);
+
+        const reply = response.message?.content || "I... don't know what to say. 💜";
+
+        conversation.push({
+            role: "assistant",
+            content: reply
+        });
+
+        // Remove "Thinking..."
+        const messages = document.getElementById("messages");
+        messages.removeChild(messages.lastElementChild);
+
+        addMessage("MINE: " + reply);
+
+    } catch (error) {
+        console.error(error);
+
+        const messages = document.getElementById("messages");
+        messages.removeChild(messages.lastElementChild);
+
+        addMessage("MINE: Something went wrong... 😭");
+    }
 }
+
+function addMessage(text) {
+    const messages = document.getElementById("messages");
+
+    const message = document.createElement("div");
+    message.className = "message";
+    message.textContent = text;
+
+    messages.appendChild(message);
+    messages.scrollTop = messages.scrollHeight;
+            }
