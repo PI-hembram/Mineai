@@ -115,18 +115,9 @@ localStorage.removeItem("mineConversation");
     };
             }
   async function speakText(text) {
-    try {
-        const voiceText = text.replace(/[.!?,;:]/g, " ");
+    const voices = await puter.ai.txt2speech.listVoices({
+        provider: "openai"
+    });
 
-        const audio = await puter.ai.txt2speech(voiceText, {
-            provider: "openai",
-            model: "gpt-4o-mini-tts",
-            voice: "coral",
-            instructions: "Young, cute, cheerful anime girl. Natural, playful voice."
-        });
-
-        await audio.play();
-    } catch (error) {
-        console.error("Voice error:", error);
-    }
-            }
+    console.log(voices);
+                }
