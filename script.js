@@ -115,10 +115,37 @@ localStorage.removeItem("mineConversation");
     };
             }
   function speakText(text) {
+    window.speechSynthesis.cancel();
+
+    const voices = window.speechSynthesis.getVoices();
+
+    let lang = "en-US";
+
+    // Japanese
+    if (/[\u3040-\u30ff\u3400-\u9fff]/.test(text)) {
+        lang = "ja-JP";
+    }
+    // Hindi / Devanagari
+    else if (/[\u0900-\u097F]/.test(text)) {
+        lang = "hi-IN";
+    }
+
+    // Find a voice matching the detected language
+    let voice = voices.find(v => v.lang === lang);
+
+    if (!voice) {
+        voice = voices.find(v => v.lang.startsWith(lang.split("-")[0]));
+    }
+
     const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 1.1;
+
+    speech.lang = lang;
+    speech.voice = voice || null;
+
+    // Softer anime-style delivery
+    speech.rate = 0.92;
+    speech.pitch = 1.18;
+    speech.volume = 1;
 
     window.speechSynthesis.speak(speech);
 }
