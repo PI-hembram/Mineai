@@ -82,4 +82,16 @@ function addMessage(text) {
 
     messages.appendChild(message);
     messages.scrollTop = messages.scrollHeight;
-            }
+      } 
+function clearChat() {
+    conversation = [];
+
+    const messages = document.getElementById("messages");
+
+    messages.innerHTML = `
+        <div class="message">
+            MINE: Fresh start... 💜
+        </div>
+    `;
+}
+
