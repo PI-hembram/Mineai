@@ -116,12 +116,13 @@ localStorage.removeItem("mineConversation");
             }
   async function speakText(text) {
     try {
-        // Make speech flow more naturally
+        // Remove punctuation that causes long TTS pauses
         text = text
             .replace(/\.\.\./g, ", ")
-            .replace(/\./g, ", ")
-            .replace(/!/g, "! ")
-            .replace(/\?/g, "? ");
+            .replace(/[.!;:]/g, ",")
+            .replace(/,/g, ", ")
+            .replace(/\s+/g, " ")
+            .trim();
 
         const audio = await puter.ai.txt2speech(text, {
             provider: "elevenlabs",
@@ -135,4 +136,4 @@ localStorage.removeItem("mineConversation");
     } catch (error) {
         console.error("Voice error:", error);
     }
-                }
+                                             }
