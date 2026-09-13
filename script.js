@@ -116,15 +116,23 @@ localStorage.removeItem("mineConversation");
             }
   async function speakText(text) {
     try {
+        // Make speech flow more naturally
+        text = text
+            .replace(/\.\.\./g, ", ")
+            .replace(/\./g, ", ")
+            .replace(/!/g, "! ")
+            .replace(/\?/g, "? ");
+
         const audio = await puter.ai.txt2speech(text, {
             provider: "elevenlabs",
             model: "eleven_multilingual_v2",
-            voice: "21m00Tcm4TlvDq8ikWAM",
+            voice: "EXAVITQu4vr4xnSDxMaL",
             output_format: "mp3_44100_128"
         });
 
         await audio.play();
+
     } catch (error) {
         console.error("Voice error:", error);
     }
-            }
+                }
