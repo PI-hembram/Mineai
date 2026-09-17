@@ -114,71 +114,66 @@ localStorage.removeItem("mineConversation");
             event.results[0][0].transcript;
     };
             }
-    async function speakText(text) {
+    let kokoro = null;
+
+async function initKokoro() {
+    if (kokoro) return kokoro;
+
+    addMessage("MINE: Loading my voice... 🎙️💜");
+
     try {
-        const selected = document.getElementById("voiceSelect").value;
-        const [provider, voice] = selected.split(":");
-
-        const voiceText = text.replace(/[.!?,;:]/g, " ");
-
-        let options = {
-            provider: provider,
-            voice: voice,
-            instructions: "Young, cute, cheerful anime girl. Natural, playful, youthful, energetic companion voice."
-        };
-
-        if (provider === "openai") {
-            options.model = "gpt-4o-mini-tts";
-        }
-
-        if (provider === "gemini") {
-            options.model = "gemini-2.5-flash-preview-tts";
-        }
-
-        if (provider === "elevenlabs") {
-            options.model = "eleven_multilingual_v2";
-        }
-
-        const audio = await puter.ai.txt2speech(
-            voiceText,
-            options
+        kokoro = await window.KokoroTTS.from_pretrained(
+            "onnx-community/Kokoro-82M-v1.0-ONNX",
+            {
+                dtype: "q8",
+                device: "wasm"
+            }
         );
 
-        await audio.play();
+        console.log("Kokoro loaded!");
+
+        return kokoro;
+
+    } catch (error) {
+        console.error("Kokoro loading error:", error);
+        addMessage("MINE: I couldn't load my voice... 😭");
+        throw error;
+    }
+}
+
+async function speakText(text) {
+    try {
+        const tts = await initKokoro();
+
+        const voice =
+            document.getElementById("voiceSelect").value ||
+            "af_heart";
+
+        const audio = await tts.generate(text, {
+            voice: voice
+        });
+
+        const blob = new Blob(
+            [audio.toWav()],
+            { type: "audio/wav" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const player = new Audio(url);
+
+        player.onended = () => {
+            URL.revokeObjectURL(url);
+        };
+
+        await player.play();
 
     } catch (error) {
         console.error("Voice error:", error);
     }
 }
-async function loadVoices() {
-    const selector = document.getElementById("voiceSelect");
 
-    try {
-        const voices = await puter.ai.txt2speech.listVoices({
-            provider: "all"
-        });
-
-        selector.innerHTML = "";
-
-        voices.forEach(voice => {
-            const option = document.createElement("option");
-
-            option.value = JSON.stringify({
-                provider: voice.provider,
-                voice: voice.id
-            });
-
-            option.textContent =
-                `${voice.name} (${voice.provider})`;
-
-            selector.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error("Voice loading error:", error);
-        selector.innerHTML =
-            "<option>Could not load voices</option>";
-    }
-}
-
-loadVoices();
+function testVoice() {
+    speakText(
+        "Hi! I'm MINE. Don't stare at me like that, baka! 💜"
+    );
+        }
