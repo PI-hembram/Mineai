@@ -55,25 +55,24 @@
 </select>
 
 <button onclick="testVoice()">🔊 Test</button>
-
-<button onclick="testVoice()">
-    🔊 Test
+            
 </button>
         </div>
 
     </div>
 
 </div>
-
-<script src="https://js.puter.com/v2/"></script>
+    <script src="https://js.puter.com/v2/"></script>
 
 <script type="module">
     import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm";
 
     window.KokoroTTS = KokoroTTS;
-</script>
 
-<script src="script.js"></script>
+    const script = document.createElement("script");
+    script.src = "script.js";
+    document.body.appendChild(script);
+</script>
 
 </body>
                 </html>
