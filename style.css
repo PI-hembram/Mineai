@@ -73,9 +73,25 @@ header p {
     background: #303047;
 }
 
-.controls {
+
+    .controls {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.controls input {
+    flex: 1;
+    min-width: 150px;
+}
+
+.controls select {
+    max-width: 130px;
+}
+
+.controls button {
+    flex-shrink: 0;
+    }
 }
 
 input {
