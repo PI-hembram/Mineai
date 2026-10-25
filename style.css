@@ -168,4 +168,15 @@ button {
         margin-top: 0;
     }
     }
-        
+        .character-stage {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 220px;
+}
+
+#characterImage {
+    max-height: 260px;
+    max-width: 100%;
+    object-fit: contain;
+    }
