@@ -1,78 +1,86 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>MINE AI</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <div id="app">
-
     <header>
         <h1>MINE</h1>
         <p>Your AI companion</p>
     </header>
 
-    <div class="character">
-        <div>
-            <h2>Hi! I'm MINE 💜</h2>
-            <p>I'm here with you.</p>
+    <section id="characterStage" class="character-stage">
+        <div id="character">
+            <img id="characterImage"
+                 src="mine-character.png"
+                 alt="MINE's character"
+                 onerror="this.style.display='none'; document.getElementById('imageNotice').style.display='block';">
         </div>
-    </div>
+        <p id="imageNotice" style="display:none">
+            Add your character image as mine-character.png
+        </p>
+    </section>
 
-    <div class="chat">
-        
-        <button onclick="clearChat()">🗑️ 
-            Clear Chat</button>
+    <section class="character-settings">
+        <h2>Character Settings</h2>
+
+        <label for="posX">Position X</label>
+        <input id="posX" type="range" min="-200" max="200" value="0">
+
+        <label for="posY">Position Y</label>
+        <input id="posY" type="range" min="-200" max="200" value="0">
+
+        <label for="charScale">Scale</label>
+        <input id="charScale" type="range" min="30" max="200" value="100">
+
+        <label for="charAngle">Angle</label>
+        <input id="charAngle" type="range" min="-180" max="180" value="0">
+
+        <label for="backgroundSelect">Background</label>
+        <select id="backgroundSelect">
+            <option value="room">Background 1: Cozy Room</option>
+            <option value="night">Background 2: Night Sky</option>
+        </select>
+
+        <button type="button" onclick="resetCharacter()">Reset Character</button>
+    </section>
+
+    <section class="chat">
+        <button type="button" onclick="clearChat()">🗑️ Clear Chat</button>
 
         <div id="messages">
-            <div class="message">
-                MINE: Hello! 💜
-            </div>
+            <div class="message">MINE: Hello, Master! ❤️</div>
         </div>
 
         <div class="controls">
-            <input
-                id="userInput"
-                type="text"
-                placeholder="Talk to MINE..."
-            >
+            <input id="userInput" type="text" placeholder="Talk to MINE...">
+            <button type="button" onclick="sendMessage()">Send</button>
+            <button type="button" onclick="startVoice()">🎙️</button>
 
-            <button onclick="sendMessage()">
-                Send
-            </button>
+            <select id="voiceSelect">
+                <option value="af_heart">Kokoro - Heart</option>
+            </select>
 
-            <button onclick="startVoice()">
-    🎙️
-            </button>
-         <select id="voiceSelect">
-    <option value="af_heart">Kokoro - Heart</option>
-</select>
-
-<button onclick="testVoice()">🔊 Test</button>
-            
-</button>
+            <button type="button" onclick="testVoice()">🔊 Test Voice</button>
         </div>
-
-    </div>
-
+    </section>
 </div>
-    <script src="https://js.puter.com/v2/"></script>
 
+<script src="https://js.puter.com/v2/"></script>
 <script type="module">
     import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm";
-
     window.KokoroTTS = KokoroTTS;
 
     const script = document.createElement("script");
     script.src = "script.js";
     document.body.appendChild(script);
 </script>
-
+<script src="character.js"></script>
 </body>
-                </html>
+    </html>
+
