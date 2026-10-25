@@ -158,8 +158,8 @@ function speakText(text) {
         utterance.lang = "en-IN";
     }
 
-    utterance.rate = 1;
-    utterance.pitch = 1.1;
+    utterance.rate = 0.88;
+    utterance.pitch = 1.25;
 
     window.speechSynthesis.speak(utterance);
 }
