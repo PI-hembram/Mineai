@@ -140,29 +140,71 @@ localStorage.removeItem("mineConversation");
     };
             }
     
-function speakText(text) {
-    if (!("speechSynthesis" in window)) {
-        addMessage("MINE: Your browser doesn't support built-in speech.");
-        return;
+
+let kokoro = null;
+let kokoroLoading = null;
+
+async function loadKokoro() {
+    if (kokoro) return kokoro;
+
+    if (!window.KokoroTTS) {
+        throw new Error("Kokoro library did not load.");
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(text)) {
-        utterance.lang = "ja-JP";
-    } else if (/[\u0900-\u097F]/.test(text)) {
-        utterance.lang = "hi-IN";
-    } else {
-        utterance.lang = "en-IN";
+    if (!kokoroLoading) {
+        kokoroLoading = window.KokoroTTS
+            .from_pretrained(
+                "onnx-community/Kokoro-82M-v1.0-ONNX",
+                {
+                    dtype: "q8",
+                    device: "wasm"
+                }
+            )
+            .then(model => {
+                kokoro = model;
+                return model;
+            })
+            .catch(error => {
+                kokoroLoading = null;
+                throw error;
+            });
     }
 
-    utterance.rate = 0.88;
-    utterance.pitch = 1.30;
+    return kokoroLoading;
+}
 
-    window.speechSynthesis.speak(utterance);
+async function speakText(text) {
+    try {
+        const tts = await loadKokoro();
+
+        const voice =
+            document.getElementById("voiceSelect")?.value
+            || "af_heart";
+
+        const audio = await tts.generate(text, { voice });
+
+        const blob = new Blob(
+            [audio.toWav()],
+            { type: "audio/wav" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const player = new Audio(url);
+
+        player.onended = () => URL.revokeObjectURL(url);
+        player.onerror = () => URL.revokeObjectURL(url);
+
+        await player.play();
+
+    } catch (error) {
+        console.error("Kokoro voice error:", error);
+        addMessage(
+            "MINE: My voice failed to load. Check the browser console for the error."
+        );
+    }
 }
 
 function testVoice() {
-    speakText("Hi Master! I am MINE. Can you hear me?");
+    speakText("Hi, Master. I'm MINE. It's nice to talk with you.");
 }
 
