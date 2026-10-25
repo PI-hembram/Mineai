@@ -148,7 +148,10 @@ async function loadKokoro() {
     if (kokoro) return kokoro;
 
     if (!window.KokoroTTS) {
-        throw new Error("Kokoro library did not load.");
+    throw new Error("Kokoro library did not load.");
+}
+
+console.log("Kokoro library loaded. Loading voice model...");
     }
 
     if (!kokoroLoading) {
@@ -161,6 +164,7 @@ async function loadKokoro() {
                 }
             )
             .then(model => {
+                console.log("Kokoro model loaded successfully!");
                 kokoro = model;
                 return model;
             })
