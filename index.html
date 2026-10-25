@@ -71,15 +71,30 @@ in
     </section>
 </div>
 
+
 <script src="https://js.puter.com/v2/"></script>
 <script type="module">
-    import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm";
-    window.KokoroTTS = KokoroTTS;
+    try {
+        const { KokoroTTS } = await import(
+            "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm"
+        );
 
-    const script = document.createElement("script");
-    script.src = "script.js";
-    document.body.appendChild(script);
+        window.KokoroTTS = KokoroTTS;
+
+        const script = document.createElement("script");
+        script.src = "./script.js";
+        script.onload = () => console.log("MINE script loaded");
+        script.onerror = () => alert("MINE script.js failed to load");
+        document.body.appendChild(script);
+
+    } catch (error) {
+        console.error("Kokoro import failed:", error);
+        alert("Kokoro failed to load. Check your internet connection.");
+    }
 </script>
+<script src="./character.js"></script>
+    
+    
 <script src="character.js"></script>
 </body>
     </html>
