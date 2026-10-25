@@ -146,8 +146,6 @@ function speakText(text) {
         return;
     }
 
-    window.speechSynthesis.cancel();
-
     const utterance = new SpeechSynthesisUtterance(text);
 
     if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(text)) {
@@ -159,7 +157,7 @@ function speakText(text) {
     }
 
     utterance.rate = 0.88;
-    utterance.pitch = 1.25;
+    utterance.pitch = 1.30;
 
     window.speechSynthesis.speak(utterance);
 }
