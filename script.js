@@ -139,66 +139,32 @@ localStorage.removeItem("mineConversation");
             event.results[0][0].transcript;
     };
             }
-    let kokoro = null;
-
-async function initKokoro() {
-    if (kokoro) return kokoro;
-
-    addMessage("MINE: Loading my voice... 🎙️💜");
-
-    try {
-        kokoro = await window.KokoroTTS.from_pretrained(
-            "onnx-community/Kokoro-82M-v1.0-ONNX",
-            {
-                dtype: "q8",
-                device: "wasm"
-            }
-        );
-
-        console.log("Kokoro loaded!");
-
-        return kokoro;
-
-    } catch (error) {
-        console.error("Kokoro loading error:", error);
-        addMessage("MINE: I couldn't load my voice... 😭");
-        throw error;
+    
+function speakText(text) {
+    if (!("speechSynthesis" in window)) {
+        addMessage("MINE: Your browser doesn't support built-in speech.");
+        return;
     }
-}
 
-async function speakText(text) {
-    try {
-        const tts = await initKokoro();
+    window.speechSynthesis.cancel();
 
-        const voice =
-            document.getElementById("voiceSelect").value ||
-            "af_heart";
+    const utterance = new SpeechSynthesisUtterance(text);
 
-        const audio = await tts.generate(text, {
-            voice: voice
-        });
-
-        const blob = new Blob(
-            [audio.toWav()],
-            { type: "audio/wav" }
-        );
-
-        const url = URL.createObjectURL(blob);
-        const player = new Audio(url);
-
-        player.onended = () => {
-            URL.revokeObjectURL(url);
-        };
-
-        await player.play();
-
-    } catch (error) {
-        console.error("Voice error:", error);
+    if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(text)) {
+        utterance.lang = "ja-JP";
+    } else if (/[\u0900-\u097F]/.test(text)) {
+        utterance.lang = "hi-IN";
+    } else {
+        utterance.lang = "en-IN";
     }
+
+    utterance.rate = 1;
+    utterance.pitch = 1.1;
+
+    window.speechSynthesis.speak(utterance);
 }
 
 function testVoice() {
-    speakText(
-        "Hi! I'm MINE. Don't stare at me like that, baka! 💜"
-    );
-        }
+    speakText("Hi Master! I am MINE. Can you hear me?");
+}
+
