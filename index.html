@@ -76,32 +76,11 @@ document.getElementById("sendBtn").addEventListener("click", function() {
         </div>
     </section>
 </div>
-
-
-<script src="https://js.puter.com/v2/"></script>
-<script type="module">
-    try {
-        const { KokoroTTS } = await import(
-            "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm"
-        );
-
-        window.KokoroTTS = KokoroTTS;
-
-        const script = document.createElement("script");
-        script.src = "./script.js";
-        script.onload = () => console.log("MINE script loaded");
-        script.onerror = () => alert("MINE script.js failed to load");
-        document.body.appendChild(script);
-
-    } catch (error) {
-        console.error("Kokoro import failed:", error);
-        alert("Kokoro failed to load. Check your internet connection.");
-    }
-</script>
+<<script src="https://js.puter.com/v2/"></script>
+<script src="./script.js"></script>
+<script src="./character.js"></script>
 <script src="./character.js"></script>
     
-    
-<script src="character.js"></script>
     <script>
 alert("MINE JavaScript is working!");
     </script>
