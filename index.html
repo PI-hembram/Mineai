@@ -1,4 +1,4 @@
-in
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,13 +59,7 @@ in
 
         <div class="controls">
             <input id="userInput" type="text" placeholder="Talk to MINE...">
-            <button type="button" id="sendBtn">Send</button>
-
-<script>
-document.getElementById("sendBtn").addEventListener("click", function() {
-    this.textContent = "CLICKED!";
-});
-</script>
+            <button type="button" onclick="sendMessage()">Send</button>
             <button type="button" onclick="startVoice()">🎙️</button>
 
             <select id="voiceSelect">
@@ -76,9 +70,8 @@ document.getElementById("sendBtn").addEventListener("click", function() {
         </div>
     </section>
 </div>
-<<script src="https://js.puter.com/v2/"></script>
+<script src="https://js.puter.com/v2/"></script>
 <script src="./script.js"></script>
-<script src="./character.js"></script>
 <script src="./character.js"></script>
     
     <script>
