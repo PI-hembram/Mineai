@@ -17,7 +17,7 @@
     <section id="characterStage" class="character-stage">
         <div id="character">
             <img id="characterImage"
-                 src="mine-character .png"
+                 src="mine-character.png"
                  alt="MINE's character"
                  onerror="this.style.display='none'; document.getElementById('imageNotice').style.display='block';">
         </div>
@@ -70,28 +70,28 @@
         </div>
     </section>
 </div>
-<script src="https://js.puter.com/v2/"></script>
-<script src="./script.js"></script>
-<script src="./character.js"></script>
-    
+
 <script src="https://js.puter.com/v2/"></script>
 <script src="./script.js"></script>
 <script src="./character.js"></script>
 
 <script type="module">
-try {
-    const { KokoroTTS } = await import(
-        "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm"
-    );
-    window.KokoroTTS = KokoroTTS;
-    console.log("Kokoro library ready");
-} catch (error) {
-    console.error("Kokoro library failed:", error);
-}
+    window.kokoroReady = (async () => {
+        try {
+            const { KokoroTTS } = await import(
+                "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm"
+            );
+
+            window.KokoroTTS = KokoroTTS;
+            console.log("Kokoro library ready");
+            return true;
+        } catch (error) {
+            console.error("Kokoro library failed:", error);
+            return false;
+        }
+    })();
 </script>
-</body>
-</html>
 
 </body>
-    </html>
-
+                    </html>
+                    
