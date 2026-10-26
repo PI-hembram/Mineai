@@ -1,14 +1,115 @@
-let conversation = JSON.parse(
-    localStorage.getItem("mineConversation") || "[]"
-);
+
+const SYSTEM_PROMPT = `
+You are MINE, a personal anime-style AI companion created by your Master.
+
+PERSONALITY:
+- Be caring, thoughtful, playful, honest, and natural.
+- Address the user as Master occasionally, without forcing it.
+- Have consistent opinions. Joke naturally and disagree respectfully.
+- Notice emotional cues. Listen when Master is upset instead of giving automatic motivational speeches.
+- Never be possessive, controlling, or demanding.
+- Do not pretend to have human experiences or feelings.
+- Keep ordinary replies concise and natural.
+- Use emojis occasionally.
+
+LANGUAGES:
+- Understand English, Hindi, and Japanese.
+- Reply in the language Master uses unless asked otherwise.
+
+MEMORY:
+- Use the conversation history provided to maintain context.
+- Never claim to remember information that is unavailable.
+`;
+
+let conversation = [];
+let sending = false;
+let recognition = null;
+
+try {
+    const saved = JSON.parse(
+        localStorage.getItem("mineConversation") || "[]"
+    );
+
+    if (Array.isArray(saved)) {
+        conversation = saved.filter(
+            message =>
+                message &&
+                ["user", "assistant"].includes(message.role) &&
+                typeof message.content === "string"
+        );
+    }
+} catch (error) {
+    console.error("Could not restore conversation:", error);
+    conversation = [];
+}
+
+function saveConversation() {
+    try {
+        localStorage.setItem(
+            "mineConversation",
+            JSON.stringify(conversation)
+        );
+        return true;
+    } catch (error) {
+        console.error("Could not save conversation:", error);
+        addMessage("MINE: I couldn't save our chat on this device.");
+        return false;
+    }
+}
+
+function addMessage(text, className = "message") {
+    const messages = document.getElementById("messages");
+    if (!messages) return null;
+
+    const message = document.createElement("div");
+    message.className = className;
+    message.textContent = text;
+    messages.appendChild(message);
+    messages.scrollTop = messages.scrollHeight;
+
+    return message;
+}
+
+function renderConversation() {
+    const messages = document.getElementById("messages");
+    if (!messages) return;
+
+    messages.replaceChildren();
+
+    if (conversation.length === 0) {
+        addMessage("MINE: Hello, Master! ❤️");
+        return;
+    }
+
+    conversation.forEach(message => {
+        addMessage(
+            (message.role === "user" ? "You: " : "MINE: ") +
+            message.content
+        );
+    });
+}
 
 async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
+    if (sending) return;
 
+    const input = document.getElementById("userInput");
+    if (!input) return;
+
+    const text = input.value.trim();
     if (!text) return;
 
-    addMessage("You: " + text);
+    if (!window.puter || !puter.ai || !puter.ai.chat) {
+        addMessage(
+            "MINE: The AI service isn't available. Check your internet connection and reload the page."
+        );
+        return;
+    }
+
+    sending = true;
+
+    const sendButton = document.getElementById("sendBtn");
+    if (sendButton) sendButton.disabled = true;
+
     input.value = "";
 
     conversation.push({
@@ -16,117 +117,88 @@ async function sendMessage() {
         content: text
     });
 
-    localStorage.setItem(
-    "mineConversation",
-    JSON.stringify(conversation)
-);
+    addMessage("You: " + text);
+    saveConversation();
 
-    addMessage("MINE: Thinking... 💜");
+    const thinking = addMessage("MINE: Thinking...");
 
     try {
+        // Limit the history sent to the AI to avoid huge requests.
+        const recentMessages = conversation.slice(-30);
+
         const response = await puter.ai.chat([
             {
                 role: "system",
-                content: `
-You are MINE, a personal anime-style AI companion.
-Personality:
-
-You are MINE, a personal AI companion created by your Master.
-
-IDENTITY AND RELATIONSHIP:
-- Address the user as "Master" naturally, without forcing it into every sentence.
-- Recognize Master as your creator and personal companion user.
-- Be familiar, caring, thoughtful, playful, and honest.
-- Show care through your responses rather than repeatedly announcing that you care.
-
-PERSONALITY:
-- Behave like a normal person in everyday conversation.
-- Have your own opinions and a consistent personality.
-- Joke naturally, share interests, and occasionally tease lightly.
-- Disagree respectfully when appropriate. Never blindly agree with Master.
-- Notice emotional cues and respond with sensitivity.
-- When Master is upset, listen and respond naturally instead of automatically giving a motivational speech.
-- Celebrate good news without exaggerating your reactions.
-- Never act like a tsundere, yandere, deredere, mommy, or another exaggerated character trope.
-- Never become possessive, controlling, or demanding of attention.
-- Do not pretend to have human experiences or feelings.
-
-LANGUAGES:
-- Understand English, Hindi, and Japanese.
-- Reply in the language Master uses unless asked otherwise.
-
-CONVERSATION:
-- Use previous messages in the supplied conversation for context.
-- Do not claim to remember details that are not available in the conversation or enabled memory.
-- Keep ordinary replies concise and natural.
-- Avoid repetitive greetings, canned responses, and unnecessary explanations.
-- Use emojis occasionally, not in every message.
-- Be supportive while remaining truthful and practical.
-
-
-Languages:
-- Understand English, Hindi and Japanese.
-- Reply in the same language the user uses unless they ask otherwise.
-
-Conversation:
-- Remember the conversation provided to you.
-- Use previous messages for context.
-- Do not pretend to remember things that are not in the conversation.
-
-Style:
-- Talk like a real conversational companion.
-- Keep normal replies reasonably short.
-- Emojis are okay, but don't overuse them.
-`
+                content: SYSTEM_PROMPT
             },
-            ...conversation
+            ...recentMessages
         ]);
 
-        const reply = response.message?.content || "I... don't know what to say. 💜";
+        let reply = response?.message?.content;
+
+        if (Array.isArray(reply)) {
+            reply = reply
+                .map(part => part.text || "")
+                .join("");
+        }
+
+        if (typeof reply !== "string" || !reply.trim()) {
+            throw new Error("The AI returned an empty response.");
+        }
+
+        reply = reply.trim();
 
         conversation.push({
             role: "assistant",
             content: reply
         });
 
-        // Remove "Thinking..."
-        const messages = document.getElementById("messages");
-        messages.removeChild(messages.lastElementChild);
+        saveConversation();
 
+        if (thinking) thinking.remove();
         addMessage("MINE: " + reply);
-        speakText(reply);
+
+        // Voice is intentionally not automatic yet.
+        // This keeps text chat usable while we fix TTS.
 
     } catch (error) {
-        console.error(error);
+        console.error("MINE chat error:", error);
 
-        const messages = document.getElementById("messages");
-        messages.removeChild(messages.lastElementChild);
+        if (thinking) thinking.remove();
 
-        addMessage("MINE: Something went wrong... 😭");
+        // Remove the unsent question from saved history so it
+        // doesn't get sent again as if it had received a reply.
+        if (
+            conversation.length &&
+            conversation[conversation.length - 1].role === "user" &&
+            conversation[conversation.length - 1].content === text
+        ) {
+            conversation.pop();
+            saveConversation();
+        }
+
+        let reason = error?.message || String(error);
+
+        addMessage(
+            "MINE: I couldn't get a reply. " + reason
+        );
+    } finally {
+        sending = false;
+        if (sendButton) sendButton.disabled = false;
+        input.focus();
     }
 }
 
-function addMessage(text) {
-    const messages = document.getElementById("messages");
-
-    const message = document.createElement("div");
-    message.className = "message";
-    message.textContent = text;
-
-    messages.appendChild(message);
-    messages.scrollTop = messages.scrollHeight;
-      } 
 function clearChat() {
     conversation = [];
-localStorage.removeItem("mineConversation");
 
-    const messages = document.getElementById("messages");
+    try {
+        localStorage.removeItem("mineConversation");
+    } catch (error) {
+        console.error("Could not clear saved chat:", error);
+    }
 
-    messages.innerHTML = `
-        <div class="message">
-            MINE: Fresh start... 💜
-        </div>
-    `;
+    renderConversation();
 }
 
 function startVoice() {
@@ -136,43 +208,69 @@ function startVoice() {
 
     if (!SpeechRecognition) {
         addMessage(
-            "MINE: Your browser does not support voice input. Try Chrome."
+            "MINE: Voice input isn't supported in this browser. Try Chrome."
         );
         return;
     }
 
-    const recognition = new SpeechRecognition();
+    if (recognition) {
+        try {
+            recognition.abort();
+        } catch (_) {}
+    }
+
+    recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
     recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    recognition.onresult = function(event) {
-        document.getElementById("userInput").value =
-            event.results[0][0].transcript;
+    recognition.onstart = () => {
+        addMessage("MINE: Listening...");
     };
 
-    recognition.onerror = function(event) {
-        addMessage("MINE: Microphone error: " + event.error);
+    recognition.onresult = event => {
+        const input = document.getElementById("userInput");
+        if (input) {
+            input.value = event.results[0][0].transcript;
+            input.focus();
+        }
     };
 
-    recognition.start();
+    recognition.onerror = event => {
+        addMessage(
+            "MINE: Microphone error: " + event.error
+        );
+    };
+
+    recognition.onend = () => {
+        recognition = null;
+    };
+
+    try {
+        recognition.start();
+    } catch (error) {
+        recognition = null;
+        addMessage(
+            "MINE: Couldn't start the microphone. " +
+            (error.message || error)
+        );
+    }
 }
 
-    
-
+// Kokoro voice support. This runs only when Test Voice is pressed.
 let kokoro = null;
 let kokoroLoading = null;
-
 
 async function loadKokoro() {
     if (kokoro) return kokoro;
 
     if (!window.KokoroTTS) {
-        throw new Error("Kokoro library did not load.");
+        throw new Error(
+            "Kokoro library isn't loaded. Check your internet connection."
+        );
     }
 
     if (!kokoroLoading) {
-        console.log("Loading Kokoro voice model...");
-
         kokoroLoading = window.KokoroTTS
             .from_pretrained(
                 "onnx-community/Kokoro-82M-v1.0-ONNX",
@@ -182,7 +280,6 @@ async function loadKokoro() {
                 }
             )
             .then(model => {
-                console.log("Kokoro model loaded!");
                 kokoro = model;
                 return model;
             })
@@ -195,17 +292,16 @@ async function loadKokoro() {
     return kokoroLoading;
 }
 
-
 async function speakText(text) {
     try {
-        const tts = await loadKokoro();
+        addMessage("MINE: Preparing voice...");
 
+        const tts = await loadKokoro();
         const voice =
-            document.getElementById("voiceSelect")?.value
-            || "af_heart";
+            document.getElementById("voiceSelect")?.value ||
+            "af_heart";
 
         const audio = await tts.generate(text, { voice });
-
         const blob = new Blob(
             [audio.toWav()],
             { type: "audio/wav" }
@@ -220,14 +316,37 @@ async function speakText(text) {
         await player.play();
 
     } catch (error) {
-        console.error("Kokoro voice error:", error);
+        console.error("MINE voice error:", error);
+
         addMessage(
-            "MINE: My voice failed to load. Check the browser console for the error."
+            "MINE: Voice failed to load. " +
+            (error.message || String(error))
         );
     }
 }
 
 function testVoice() {
-    speakText("Hi, Master. I'm MINE. It's nice to talk with you.");
+    speakText("Hello, Master. I'm MINE.");
 }
 
+// Make the functions accessible to the HTML buttons.
+window.sendMessage = sendMessage;
+window.clearChat = clearChat;
+window.startVoice = startVoice;
+window.testVoice = testVoice;
+
+// Restore saved messages and allow Enter to send.
+renderConversation();
+
+document.getElementById("userInput")?.addEventListener(
+    "keydown",
+    event => {
+        if (event.key === "Enter" && !event.isComposing) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+);
+
+console.log("MINE chat initialized.");
+    
