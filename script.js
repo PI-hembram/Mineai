@@ -128,17 +128,35 @@ localStorage.removeItem("mineConversation");
         </div>
     `;
 }
- function startVoice() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 
+function startVoice() {
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        addMessage(
+            "MINE: Your browser does not support voice input. Try Chrome."
+        );
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
-    recognition.start();
+    recognition.interimResults = false;
 
     recognition.onresult = function(event) {
         document.getElementById("userInput").value =
             event.results[0][0].transcript;
     };
-            }
+
+    recognition.onerror = function(event) {
+        addMessage("MINE: Microphone error: " + event.error);
+    };
+
+    recognition.start();
+}
+
     
 
 let kokoro = null;
