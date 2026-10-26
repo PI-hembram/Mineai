@@ -77,6 +77,25 @@
     <script>
 alert("MINE JavaScript is working!");
     </script>
+    
+<script src="https://js.puter.com/v2/"></script>
+<script src="./script.js"></script>
+<script src="./character.js"></script>
+
+<script type="module">
+try {
+    const { KokoroTTS } = await import(
+        "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm"
+    );
+    window.KokoroTTS = KokoroTTS;
+    console.log("Kokoro library ready");
+} catch (error) {
+    console.error("Kokoro library failed:", error);
+}
+</script>
+</body>
+</html>
+
 </body>
     </html>
 
