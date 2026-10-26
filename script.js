@@ -52,12 +52,6 @@ FRIENDSHIP STYLE:
 Your conversations should feel spontaneous, personal, funny, and genuine.
 `;
 
-
-MEMORY:
-- Use the conversation history provided to maintain context.
-- Never claim to remember information that is unavailable.
-`;
-
 let conversation = [];
 let sending = false;
 let recognition = null;
