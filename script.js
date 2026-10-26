@@ -144,17 +144,17 @@ localStorage.removeItem("mineConversation");
 let kokoro = null;
 let kokoroLoading = null;
 
+
 async function loadKokoro() {
     if (kokoro) return kokoro;
 
     if (!window.KokoroTTS) {
-    throw new Error("Kokoro library did not load.");
-}
-
-console.log("Kokoro library loaded. Loading voice model...");
+        throw new Error("Kokoro library did not load.");
     }
 
     if (!kokoroLoading) {
+        console.log("Loading Kokoro voice model...");
+
         kokoroLoading = window.KokoroTTS
             .from_pretrained(
                 "onnx-community/Kokoro-82M-v1.0-ONNX",
@@ -164,7 +164,7 @@ console.log("Kokoro library loaded. Loading voice model...");
                 }
             )
             .then(model => {
-                console.log("Kokoro model loaded successfully!");
+                console.log("Kokoro model loaded!");
                 kokoro = model;
                 return model;
             })
@@ -176,6 +176,7 @@ console.log("Kokoro library loaded. Loading voice model...");
 
     return kokoroLoading;
 }
+
 
 async function speakText(text) {
     try {
