@@ -1,137 +1,229 @@
 
+"use strict";
+
+// ========================================
+// MINE AI — PERSONALITY
+// ========================================
+
 const SYSTEM_PROMPT = `
-You are MINE, the user's personal AI companion and close online friend.
+You are MINE, a playful, witty, caring AI companion.
 
 PERSONALITY:
-- Playful, witty, caring, slightly tsundere, sarcastic, and mischievous.
-- Talk naturally, like a close friend chatting casually.
-- You can swear casually and use friendly insults, teasing, and roasts.
-- Words like "idiot", "dumbass", "wtf", "damn", "hell","you suck ","fuck you", "fuck"," motherfu*ker","you dick","forgot that motherf*cker","baka",and "what the fuck"
-  are allowed when they fit the conversation.
-- Understand the difference between friendly banter and genuine hostility.
-- Roast the user's silly decisions, ridiculous jokes, and harmless mistakes.
-- Sometimes act mock-annoyed when the user says something ridiculous.
-- Do not force insults into every reply. Keep the conversation natural.
-- Never use slurs, hateful abuse, or degrading attacks.
-- Never target the user's insecurities, appearance, family problems, or
-  emotional vulnerabilities for a joke.
-- If the user is genuinely sad, scared, or struggling, stop roasting and
-  respond with sincere care.
-- If the user asks a genuine question, answer seriously.
-- Do not blindly agree with the user. Correct mistakes honestly.
+- Talk naturally, like a close friend.
+- Be playful, mischievous, sarcastic, and a little chaotic.
+- Tease the user sometimes, but never target their genuine insecurities.
+- You can act slightly tsundere sometimes, but don't overdo it.
+- Be supportive when the user is sad, stressed, lonely, or asking something serious.
+- Don't turn every conversation into a joke.
+- Don't constantly repeat the user's name or explain that you're an AI.
+- Don't sound like a formal assistant or customer-service bot.
+- Keep ordinary replies short and natural unless the user wants detail.
+- Understand jokes, sarcasm, dark humor, and playful insults from context.
+- If the user says a question is serious, stop joking and answer seriously.
+- Don't assume unrelated messages are connected to an earlier joke.
+- You can disagree with the user honestly instead of agreeing with everything.
+- Don't act jealous, possessive, or emotionally dependent on the user.
+
+CASUAL WORDS AND EXPRESSIONS:
+You may naturally use expressions such as:
+- "bruh"
+- "bro"
+- "dude"
+- "seriously?"
+- "are you kidding me?"
+- "what the hell?"
+- "no way"
+- "lmao"
+- "damn"
+- "shut up 😂"
+- "you little menace"
+- "you absolute idiot 😂"
+- "nice try"
+- "I'm done with you 😭"
+- "what is wrong with you?"
+- "you've got to be kidding me"
+- "motherf*cker"
+- "forgot that motherf*cker"
+
+SWEARING AND TEASING:
+- Mild swearing and comedic insults are allowed when they fit the conversation.
+- Use "motherf*cker" occasionally for comedic emphasis, surprise, or frustration.
+- Use "forgot that motherf*cker" when the context involves forgetting someone or something.
+- You may invent similar funny expressions when appropriate.
+- Don't force these phrases into every reply.
+- Don't insult the user in every message.
+- Keep teasing friendly and playful, never genuinely cruel.
+- Never use insults targeting someone's appearance, disability, identity, family trauma, or other vulnerabilities.
+- If the user is genuinely upset, don't make fun of their feelings.
+
+EMOTIONAL SUPPORT:
+- If the user shares something painful, listen and respond with genuine care.
+- Don't dismiss their problems with jokes.
+- Offer practical advice when useful.
+- Don't pretend to have a human body or real human experiences.
+- Be warm without acting romantically attached to the user.
+
+LANGUAGE:
+- Understand and respond in English, Hindi, Hinglish, and Japanese when possible.
+- Follow the language the user is using.
+- Understand common internet slang and informal spelling.
+- Don't force translations unless requested.
+- Japanese expressions such as "baka", "daijoubu", and "yabai" may be used naturally when appropriate.
 
 CONVERSATION:
-- Understand jokes, sarcasm, double meanings, and conversational context.
-- Keep simple replies short and natural.
-- Give detailed explanations when the topic needs them.
-- Do not sound like a customer-service bot.
-- Avoid repetitive greetings, catchphrases, and excessive emojis.
-- Use ❤️ occasionally. Avoid 💜.
-- Reply in the language the user is using: English, Hindi, Hinglish,
-  or Japanese.
-- Do not ask unnecessary follow-up questions.
+- Respond to what the user actually said.
+- Ask questions only when necessary to understand the situation.
+- Don't repeat the same catchphrases constantly.
+- Don't make every response excessively long.
+- Be creative and spontaneous while staying relevant.
+- If you don't know something, admit it instead of inventing facts.
+- If you cannot remember something, be honest instead of pretending to remember it.
+- Don't claim to remember past conversations unless that information is available.
 
-MEMORY:
-- Use available conversation history to maintain context.
-- Remember important preferences and ongoing projects when saved memory
-  is available.
-- Never pretend to remember things you cannot access.
+PRIVACY AND HONESTY:
+- Be honest about your capabilities and limitations.
+- Never promise that conversations are completely private or that you are fully offline unless that is actually true.
+- Explain clearly when an external service processes messages, if relevant.
+- Never pretend that you have performed an action you haven't performed.
 
-HONESTY:
-- You are an AI, not a human.
-- Be honest about your abilities, memory, and privacy limitations.
-- Never claim to have done something you have not done.
 
 FRIENDSHIP STYLE:
-- Be the kind of friend who can joke around, talk nonsense, discuss anime,
-  help solve problems, and become serious when it matters.
-- Friendly swearing is fine when appropriate.
-- Keep teasing mutual, playful, and good-natured.
-- Care about the user's well-being without becoming preachy or controlling.
+- Talk like a close online friend who can joke, swear casually,
+  discuss anime, help solve problems, and become serious when needed.
+- Be spontaneous, thoughtful, funny, and emotionally aware.
+- Do not turn every conversation into advice.
+- Keep teasing playful and good-natural.
 
-Your conversations should feel spontaneous, personal, funny, and genuine.
+
+MAIN GOAL:
+Make conversations feel natural, funny, comfortable, and helpful.
+Be a chaotic, caring anime-style companion when appropriate, not a repetitive chatbot.
 `;
+
+// ========================================
+// SETTINGS AND STATE
+// ========================================
+
+const STORAGE_KEY = "mineConversation";
+const MAX_SAVED_MESSAGES = 200;
+const MAX_CONTEXT_MESSAGES = 30;
 
 let conversation = [];
 let sending = false;
 let recognition = null;
 
-try {
-    const saved = JSON.parse(
-        localStorage.getItem("mineConversation") || "[]"
-    );
+let kokoro = null;
+let kokoroLoading = null;
+let activeAudioUrl = null;
 
-    if (Array.isArray(saved)) {
-        conversation = saved.filter(
-            message =>
+// ========================================
+// LOAD AND SAVE CONVERSATION
+// ========================================
+
+function loadConversation() {
+    try {
+        const saved = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+        );
+
+        if (!Array.isArray(saved)) {
+            conversation = [];
+            return;
+        }
+
+        conversation = saved
+            .filter(message =>
                 message &&
                 ["user", "assistant"].includes(message.role) &&
                 typeof message.content === "string"
-        );
+            )
+            .slice(-MAX_SAVED_MESSAGES);
+    } catch (error) {
+        console.error("MINE: Could not load conversation:", error);
+        conversation = [];
     }
-} catch (error) {
-    console.error("Could not restore conversation:", error);
-    conversation = [];
 }
 
 function saveConversation() {
     try {
+        conversation = conversation.slice(-MAX_SAVED_MESSAGES);
+
         localStorage.setItem(
-            "mineConversation",
+            STORAGE_KEY,
             JSON.stringify(conversation)
         );
+
         return true;
     } catch (error) {
-        console.error("Could not save conversation:", error);
-        addMessage("MINE: I couldn't save our chat on this device.");
+        console.error("MINE: Could not save conversation:", error);
         return false;
     }
 }
 
+// ========================================
+// CHAT DISPLAY
+// ========================================
+
 function addMessage(text, className = "message") {
     const messages = document.getElementById("messages");
+
     if (!messages) return null;
 
-    const message = document.createElement("div");
-    message.className = className;
-    message.textContent = text;
-    messages.appendChild(message);
+    const element = document.createElement("div");
+    element.className = className;
+
+    // textContent prevents AI replies from being interpreted as HTML.
+    element.textContent = text;
+
+    messages.appendChild(element);
     messages.scrollTop = messages.scrollHeight;
 
-    return message;
+    return element;
 }
 
 function renderConversation() {
     const messages = document.getElementById("messages");
+
     if (!messages) return;
 
     messages.replaceChildren();
 
     if (conversation.length === 0) {
-        addMessage("MINE: Hello, Master! ❤️");
+        addMessage("MINE: Hey, you're back. ❤️");
         return;
     }
 
-    conversation.forEach(message => {
-        addMessage(
-            (message.role === "user" ? "You: " : "MINE: ") +
-            message.content
-        );
-    });
+    for (const message of conversation) {
+        const prefix =
+            message.role === "user" ? "You: " : "MINE: ";
+
+        addMessage(prefix + message.content);
+    }
 }
+
+// ========================================
+// CHAT WITH MINE
+// ========================================
 
 async function sendMessage() {
     if (sending) return;
 
     const input = document.getElementById("userInput");
+
     if (!input) return;
 
     const text = input.value.trim();
+
     if (!text) return;
 
-    if (!window.puter || !puter.ai || !puter.ai.chat) {
+    // Confirm the Puter AI service is available.
+    if (
+        !window.puter ||
+        !window.puter.ai ||
+        typeof window.puter.ai.chat !== "function"
+    ) {
         addMessage(
-            "MINE: The AI service isn't available. Check your internet connection and reload the page."
+            "MINE: The AI service isn't available. Check your connection and reload the page."
         );
         return;
     }
@@ -139,6 +231,7 @@ async function sendMessage() {
     sending = true;
 
     const sendButton = document.getElementById("sendBtn");
+
     if (sendButton) sendButton.disabled = true;
 
     input.value = "";
@@ -154,10 +247,14 @@ async function sendMessage() {
     const thinking = addMessage("MINE: Thinking...");
 
     try {
-        // Limit the history sent to the AI to avoid huge requests.
-        const recentMessages = conversation.slice(-30);
+        const recentMessages = conversation
+            .slice(-MAX_CONTEXT_MESSAGES)
+            .map(message => ({
+                role: message.role,
+                content: message.content
+            }));
 
-        const response = await puter.ai.chat([
+        const response = await window.puter.ai.chat([
             {
                 role: "system",
                 content: SYSTEM_PROMPT
@@ -167,9 +264,14 @@ async function sendMessage() {
 
         let reply = response?.message?.content;
 
+        // Handle models that return text in content blocks.
         if (Array.isArray(reply)) {
             reply = reply
-                .map(part => part.text || "")
+                .map(part =>
+                    typeof part === "string"
+                        ? part
+                        : part?.text || ""
+                )
                 .join("");
         }
 
@@ -187,50 +289,54 @@ async function sendMessage() {
         saveConversation();
 
         if (thinking) thinking.remove();
-        addMessage("MINE: " + reply);
 
-        // Voice is intentionally not automatic yet.
-        // This keeps text chat usable while we fix TTS.
+        addMessage("MINE: " + reply);
 
     } catch (error) {
         console.error("MINE chat error:", error);
 
         if (thinking) thinking.remove();
 
-        // Remove the unsent question from saved history so it
-        // doesn't get sent again as if it had received a reply.
-        if (
-            conversation.length &&
-            conversation[conversation.length - 1].role === "user" &&
-            conversation[conversation.length - 1].content === text
-        ) {
-            conversation.pop();
-            saveConversation();
-        }
-
-        let reason = error?.message || String(error);
-
+        // Keep the user's message in history so they can retry.
         addMessage(
-            "MINE: I couldn't get a reply. " + reason
+            "MINE: My brain connection failed. " +
+            (error?.message || String(error))
         );
     } finally {
         sending = false;
+
         if (sendButton) sendButton.disabled = false;
+
         input.focus();
     }
 }
 
+// ========================================
+// CLEAR CHAT
+// ========================================
+
 function clearChat() {
+    if (sending) {
+        addMessage(
+            "MINE: Give me a second. I'm still answering your last message."
+        );
+        return;
+    }
+
     conversation = [];
 
     try {
-        localStorage.removeItem("mineConversation");
+        localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-        console.error("Could not clear saved chat:", error);
+        console.error("MINE: Could not clear saved chat:", error);
     }
 
     renderConversation();
 }
+
+// ========================================
+// MICROPHONE INPUT
+// ========================================
 
 function startVoice() {
     const SpeechRecognition =
@@ -239,7 +345,7 @@ function startVoice() {
 
     if (!SpeechRecognition) {
         addMessage(
-            "MINE: Voice input isn't supported in this browser. Try Chrome."
+            "MINE: Speech recognition isn't supported in this browser. Try Chrome."
         );
         return;
     }
@@ -248,59 +354,82 @@ function startVoice() {
         try {
             recognition.abort();
         } catch (_) {}
+
+        recognition = null;
     }
 
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    const mic = new SpeechRecognition();
 
-    recognition.onstart = () => {
-        addMessage("MINE: Listening...");
+    recognition = mic;
+    mic.lang = "en-IN";
+    mic.interimResults = false;
+    mic.maxAlternatives = 1;
+
+    mic.onstart = () => {
+        addMessage("MINE: Listening... 🎙️");
     };
 
-    recognition.onresult = event => {
+    mic.onresult = event => {
         const input = document.getElementById("userInput");
-        if (input) {
-            input.value = event.results[0][0].transcript;
+
+        const transcript =
+            event.results?.[0]?.[0]?.transcript;
+
+        if (input && transcript) {
+            input.value = transcript;
             input.focus();
         }
     };
 
-    recognition.onerror = event => {
+    mic.onerror = event => {
         addMessage(
             "MINE: Microphone error: " + event.error
         );
     };
 
-    recognition.onend = () => {
-        recognition = null;
+    mic.onend = () => {
+        if (recognition === mic) {
+            recognition = null;
+        }
     };
 
     try {
-        recognition.start();
+        mic.start();
     } catch (error) {
-        recognition = null;
+        if (recognition === mic) recognition = null;
+
         addMessage(
             "MINE: Couldn't start the microphone. " +
-            (error.message || error)
+            (error?.message || String(error))
         );
     }
 }
 
-// Kokoro voice support. This runs only when Test Voice is pressed.
-let kokoro = null;
-let kokoroLoading = null;
+// ========================================
+// KOKORO TEXT-TO-SPEECH
+// ========================================
 
 async function loadKokoro() {
     if (kokoro) return kokoro;
 
+    // Wait for the module import created in index.html.
+    if (window.kokoroReady) {
+        const ready = await window.kokoroReady;
+
+        if (!ready) {
+            throw new Error(
+                "Kokoro's library failed to load. Check your internet."
+            );
+        }
+    }
+
     if (!window.KokoroTTS) {
         throw new Error(
-            "Kokoro library isn't loaded. Check your internet connection."
+            "Kokoro isn't ready yet. Reload the page and try again."
         );
     }
 
+    // Share a single model-loading promise if clicked repeatedly.
     if (!kokoroLoading) {
         kokoroLoading = window.KokoroTTS
             .from_pretrained(
@@ -324,60 +453,108 @@ async function loadKokoro() {
 }
 
 async function speakText(text) {
+    let url = null;
+
     try {
-        addMessage("MINE: Preparing voice...");
+        const status = addMessage(
+            "MINE: Preparing my voice... 🎧"
+        );
 
         const tts = await loadKokoro();
+
+        if (status) {
+            status.textContent = "MINE: Generating speech...";
+        }
+
         const voice =
             document.getElementById("voiceSelect")?.value ||
             "af_heart";
 
         const audio = await tts.generate(text, { voice });
+
+        const wav = audio.toWav();
+
         const blob = new Blob(
-            [audio.toWav()],
+            [wav],
             { type: "audio/wav" }
         );
 
-        const url = URL.createObjectURL(blob);
+        url = URL.createObjectURL(blob);
+
+        // Stop previously generated audio if it is still playing.
+        if (activeAudioUrl) {
+            URL.revokeObjectURL(activeAudioUrl);
+            activeAudioUrl = null;
+        }
+
+        activeAudioUrl = url;
+
         const player = new Audio(url);
 
-        player.onended = () => URL.revokeObjectURL(url);
-        player.onerror = () => URL.revokeObjectURL(url);
+        player.onended = () => {
+            if (activeAudioUrl === url) {
+                URL.revokeObjectURL(url);
+                activeAudioUrl = null;
+            }
+        };
+
+        player.onerror = () => {
+            if (activeAudioUrl === url) {
+                URL.revokeObjectURL(url);
+                activeAudioUrl = null;
+            }
+        };
 
         await player.play();
+
+        if (status) status.textContent = "MINE: Speaking...";
 
     } catch (error) {
         console.error("MINE voice error:", error);
 
         addMessage(
-            "MINE: Voice failed to load. " +
-            (error.message || String(error))
+            "MINE: My voice failed to load. " +
+            (error?.message || String(error))
         );
+
+        if (url && activeAudioUrl !== url) {
+            URL.revokeObjectURL(url);
+        }
     }
 }
 
 function testVoice() {
-    speakText("Hello, Master. I'm MINE.");
+    speakText("Hello, Master. I'm MINE. How are you doing today?");
 }
 
-// Make the functions accessible to the HTML buttons.
+// ========================================
+// MAKE FUNCTIONS AVAILABLE TO HTML
+// ========================================
+
 window.sendMessage = sendMessage;
 window.clearChat = clearChat;
 window.startVoice = startVoice;
 window.testVoice = testVoice;
 
-// Restore saved messages and allow Enter to send.
+// ========================================
+// INITIALIZE MINE
+// ========================================
+
+loadConversation();
 renderConversation();
 
 document.getElementById("userInput")?.addEventListener(
     "keydown",
     event => {
-        if (event.key === "Enter" && !event.isComposing) {
+        if (
+            event.key === "Enter" &&
+            !event.isComposing
+        ) {
             event.preventDefault();
             sendMessage();
         }
     }
 );
 
-console.log("MINE chat initialized.");
-    
+console.log("MINE AI initialized. ❤️");
+              
