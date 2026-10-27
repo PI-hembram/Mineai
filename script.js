@@ -313,6 +313,7 @@ async function sendMessage() {
         if (thinking) thinking.remove();
 
         addMessage("MINE: " + reply);
+          speakText(reply);
 
     } catch (error) {
         console.error("MINE chat error:", error);
