@@ -474,13 +474,22 @@ async function loadKokoro() {
     return kokoroLoading;
 }
 
+
+let voiceBusy = false;
+
 async function speakText(text) {
+    if (voiceBusy) return;
+
+    // Keep speech short on the Vivo Y11.
+    text = String(text || "").trim().slice(0, 180);
+    if (!text) return;
+
+    voiceBusy = true;
     let url = null;
+    let status = null;
 
     try {
-        const status = addMessage(
-            "MINE: Preparing my voice... 🎧"
-        );
+        status = addMessage("MINE: Preparing my voice... 🎧");
 
         const tts = await loadKokoro();
 
@@ -493,57 +502,52 @@ async function speakText(text) {
             "af_heart";
 
         const audio = await tts.generate(text, { voice });
-
         const wav = audio.toWav();
 
-        const blob = new Blob(
-            [wav],
-            { type: "audio/wav" }
-        );
-
+        const blob = new Blob([wav], { type: "audio/wav" });
         url = URL.createObjectURL(blob);
 
-        // Stop previously generated audio if it is still playing.
         if (activeAudioUrl) {
             URL.revokeObjectURL(activeAudioUrl);
-            activeAudioUrl = null;
         }
 
         activeAudioUrl = url;
 
         const player = new Audio(url);
 
-        player.onended = () => {
+        const cleanup = () => {
             if (activeAudioUrl === url) {
                 URL.revokeObjectURL(url);
                 activeAudioUrl = null;
             }
         };
 
-        player.onerror = () => {
-            if (activeAudioUrl === url) {
-                URL.revokeObjectURL(url);
-                activeAudioUrl = null;
-            }
-        };
+        player.onended = cleanup;
+        player.onerror = cleanup;
+
+        if (status) status.textContent = "MINE: Speaking... ❤️";
 
         await player.play();
-
-        if (status) status.textContent = "MINE: Speaking...";
 
     } catch (error) {
         console.error("MINE voice error:", error);
 
-        addMessage(
-            "MINE: My voice failed to load. " +
-            (error?.message || String(error))
-        );
+        if (status) {
+            status.textContent =
+                "MINE: Voice failed. " +
+                (error?.message || String(error));
+        } else {
+            addMessage("MINE: Voice failed to load.");
+        }
 
         if (url && activeAudioUrl !== url) {
             URL.revokeObjectURL(url);
         }
+    } finally {
+        voiceBusy = false;
     }
-}
+                              }
+          
 
 function testVoice() {
     speakText("Hello, Master.");
