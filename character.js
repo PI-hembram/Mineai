@@ -46,3 +46,15 @@ function resetCharacter() {
 updateCharacter();
 updateBackground();
       
+function setCharacterMood(mood) {
+    const expressions = {
+        neutral: "mine-character.png",
+        happy: "mine-happy.png",
+        shy: "mine-shy.png",
+        annoyed: "mine-annoyed.png"
+    };
+
+    if (expressions[mood]) {
+        image.src = expressions[mood];
+    }
+}
