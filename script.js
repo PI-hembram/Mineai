@@ -480,7 +480,6 @@ let voiceBusy = false;
 async function speakText(text) {
     if (voiceBusy) return;
 
-    // Keep speech short on the Vivo Y11.
     text = String(text || "").trim().slice(0, 180);
     if (!text) return;
 
@@ -503,8 +502,8 @@ async function speakText(text) {
 
         const audio = await tts.generate(text, { voice });
         const wav = audio.toWav();
-
         const blob = new Blob([wav], { type: "audio/wav" });
+
         url = URL.createObjectURL(blob);
 
         if (activeAudioUrl) {
@@ -536,8 +535,6 @@ async function speakText(text) {
             status.textContent =
                 "MINE: Voice failed. " +
                 (error?.message || String(error));
-        } else {
-            addMessage("MINE: Voice failed to load.");
         }
 
         if (url && activeAudioUrl !== url) {
@@ -546,8 +543,7 @@ async function speakText(text) {
     } finally {
         voiceBusy = false;
     }
-                              }
-          
+    }
 
 function testVoice() {
     speakText("Hello, Master.");
