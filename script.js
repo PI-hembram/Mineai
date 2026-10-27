@@ -546,7 +546,7 @@ async function speakText(text) {
 }
 
 function testVoice() {
-    speakText("Hello, Master. I'm MINE. How are you doing today?");
+    speakText("Hello, Master.");
 }
 
 // ========================================
